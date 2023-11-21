@@ -57,7 +57,7 @@ const login = async (req, res, next) => {
   }
 };
 
-const getCurrent = async (req, res) => {
+const getCurrent = async (req, res, next) => {
   try {
     const { email, subscription } = req.user;
 
@@ -79,10 +79,14 @@ const logout = async (req, res) => {
   });
 };
 
-const updateSubscription = async (req, res) => {
+const updateSubscription = async (req, res, next) => {
   try {
     const { _id } = req.user;
-    const result = await User.findOneAndUpdate(_id, req.user, { new: true });
+    const result = await User.findOneAndUpdate(_id, req.body, { new: true });
+
+    if (!result) {
+      throw HttpError(404, "Not found");
+    }
 
     res.status(200).json({ subscription: result.subscription });
   } catch (error) {
