@@ -1,9 +1,15 @@
 const { User } = require("../models/users");
 const { HttpError } = require("../helpers/httpError");
 const bcrypt = require("bcrypt");
+const fs = require("fs/promises");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const { SECRET_KEY } = process.env;
+const gravatar = require("gravatar");
+const path = require("path");
+const avatarDirection = path.join(__dirname, "../public/avatars");
+const crypto = require("crypto");
+const Jimp = require("jimp");
 
 const register = async (req, res, next) => {
   try {
@@ -20,7 +26,13 @@ const register = async (req, res, next) => {
 
     const hashPassword = await bcrypt.hash(password, 10);
 
-    const newUser = await User.create({ ...body, password: hashPassword });
+    const avatarURL = gravatar.url(email);
+
+    const newUser = await User.create({
+      ...body,
+      password: hashPassword,
+      avatarURL,
+    });
 
     res.status(201).json({
       user: { email: newUser.email, subscription: newUser.subscription },
@@ -93,4 +105,38 @@ const updateSubscription = async (req, res, next) => {
     next(error);
   }
 };
-module.exports = { register, login, getCurrent, logout, updateSubscription };
+
+const updateAvatar = async (req, res, next) => {
+  try {
+    const { _id } = req.user;
+    const { path: tempUpload, originalname } = req.file;
+
+    const image = await Jimp.read(tempUpload);
+    image.resize(250, 250);
+
+    const nameForFile = `${crypto.randomUUID()}_${originalname}`;
+    const avatarUpload = path.join(avatarDirection, nameForFile);
+
+    await image.writeAsync(avatarUpload);
+    await fs.unlink(tempUpload);
+    // await fs.rename(tempUpload, avatarUpload);
+
+    const avatarURL = path.join("avatars", nameForFile);
+    await User.findByIdAndUpdate(_id, { avatarURL });
+
+    res.json({
+      avatarURL,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  register,
+  login,
+  getCurrent,
+  logout,
+  updateSubscription,
+  updateAvatar,
+};

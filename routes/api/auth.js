@@ -12,8 +12,10 @@ const {
   getCurrent,
   logout,
   updateSubscription,
+  updateAvatar,
 } = require("../../controllers/auth");
 const { authenticate } = require("../../middlewares/authenticate");
+const { uploadFile } = require("../../middlewares/uploadFile");
 const router = express.Router();
 
 router.post("/register", validateBody(registerSchema), register);
@@ -29,5 +31,12 @@ router.patch(
   authenticate,
   validateBody(subscriptionSchema),
   updateSubscription
+);
+
+router.patch(
+  "/avatars",
+  authenticate,
+  uploadFile.single("avatar"),
+  updateAvatar
 );
 module.exports = router;
