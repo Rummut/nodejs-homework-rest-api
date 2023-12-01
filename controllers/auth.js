@@ -29,12 +29,14 @@ const register = async (req, res, next) => {
     const verificationToken = crypto.randomUUID();
     const avatarURL = gravatar.url(email);
 
-    await sendEmail({
+    const verifyEmail = {
       to: email,
       subject: "Welcome to Contacts book",
-      html: `<h1>Confirm registration</h1>To confirm your registration, please click on <a href='http://localhost:8080/users/verify/${verificationToken}'>link</a>`,
+      html: `<h1>Confirm registration</h1><p>To confirm your registration, please click on <a href='http://localhost:8080/users/verify/${verificationToken}'>link</a></p>`,
       text: `To confirm your registration, please open the link http://localhost:8080/users/verify/${verificationToken}`,
-    });
+    };
+
+    await sendEmail(verifyEmail);
 
     const newUser = await User.create({
       ...body,
@@ -67,7 +69,7 @@ const resendVerifyEmail = async (req, res, next) => {
     const verifyEmail = {
       to: email,
       subject: "Welcome to Contacts book",
-      html: `<h1>Confirm registration</h1>To confirm your registration, please click on <a href='http://localhost:8080/users/verify/${user.verificationToken}'>link</a>`,
+      html: `<h1>Confirm registration</h1><p>To confirm your registration, please click on <a href='http://localhost:8080/users/verify/${user.verificationToken}'>link</a></p>`,
       text: `To confirm your registration, please open the link http://localhost:8080/users/verify/${user.verificationToken}`,
     };
 
