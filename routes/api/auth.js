@@ -4,6 +4,7 @@ const {
   registerSchema,
   loginSchema,
   subscriptionSchema,
+  emailSchema,
 } = require("../../validation/userValidationSchema");
 
 const {
@@ -13,6 +14,8 @@ const {
   logout,
   updateSubscription,
   updateAvatar,
+  verify,
+  resendVerifyEmail,
 } = require("../../controllers/auth");
 const { authenticate } = require("../../middlewares/authenticate");
 const { uploadFile } = require("../../middlewares/uploadFile");
@@ -39,4 +42,8 @@ router.patch(
   uploadFile.single("avatar"),
   updateAvatar
 );
+
+router.get("/verify/:verificationToken", verify);
+
+router.post("/verify", validateBody(emailSchema), resendVerifyEmail);
 module.exports = router;
